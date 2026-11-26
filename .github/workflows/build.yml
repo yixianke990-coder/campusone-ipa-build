@@ -28,7 +28,8 @@ jobs:
 
       - name: Build unsigned app
         run: |
-          cd GongmaoAssistant-v0.8.8
+          set -o pipefail
+          cd GongmaoAssistant-v0.8.9
           xcodebuild \
             -project CampusOne.xcodeproj \
             -scheme CampusOne \
@@ -38,7 +39,14 @@ jobs:
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGN_IDENTITY="" \
-            clean build
+            clean build 2>&1 | tee ../build-full.log
+
+      - name: Upload build log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: GongmaoAssistant-build-log
+          path: build-full.log
 
       - name: Package IPA
         run: |
@@ -47,6 +55,7 @@ jobs:
           /usr/libexec/PlistBuddy -c "Print :CFBundleIdentifier" "$APP_PATH/Info.plist"
           /usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" "$APP_PATH/Info.plist"
           /usr/libexec/PlistBuddy -c "Print :MinimumOSVersion" "$APP_PATH/Info.plist"
+          ls "$APP_PATH/PlugIns" || true
           mkdir -p Payload
           cp -r "$APP_PATH" Payload/
           zip -r GongmaoAssistant-unsigned.ipa Payload
@@ -61,6 +70,6 @@ jobs:
       - name: Publish release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v0.8.8
-          name: GongmaoAssistant v0.8.8 (unsigned)
+          tag_name: v0.8.9
+          name: GongmaoAssistant v0.8.9 (unsigned)
           files: GongmaoAssistant-unsigned.ipa
