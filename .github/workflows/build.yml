@@ -1,0 +1,58 @@
+name: Build CampusOne Unsigned IPA
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: macos-15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Unzip source
+        run: |
+          unzip -o CampusOne-source.zip
+          ls -la
+
+      - name: Select latest Xcode
+        run: |
+          ls /Applications | grep -i xcode || true
+          XCODE_APP=$(ls -d /Applications/Xcode*.app | sort -V | tail -1)
+          echo "Using $XCODE_APP"
+          sudo xcode-select -s "$XCODE_APP/Contents/Developer"
+          xcodebuild -version
+
+      - name: Build unsigned app
+        run: |
+          cd CampusOne-v0.3
+          xcodebuild -project CampusOne.xcodeproj -scheme CampusOne \
+            -configuration Release -sdk iphoneos \
+            -derivedDataPath ../build \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" \
+            build
+
+      - name: Package IPA
+        run: |
+          mkdir -p Payload
+          cp -R build/Build/Products/Release-iphoneos/CampusOne.app Payload/
+          /usr/libexec/PlistBuddy -c "Print CFBundleIdentifier" Payload/CampusOne.app/Info.plist || true
+          /usr/libexec/PlistBuddy -c "Print CFBundleShortVersionString" Payload/CampusOne.app/Info.plist || true
+          /usr/libexec/PlistBuddy -c "Print MinimumOSVersion" Payload/CampusOne.app/Info.plist || true
+          zip -r CampusOne-unsigned.ipa Payload
+          ls -la CampusOne-unsigned.ipa
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: CampusOne-unsigned-ipa
+          path: CampusOne-unsigned.ipa
+
+      - name: Publish release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v0.3.0
+          name: CampusOne v0.3.0 (unsigned)
+          files: CampusOne-unsigned.ipa
