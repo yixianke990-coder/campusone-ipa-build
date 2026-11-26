@@ -28,7 +28,7 @@ jobs:
 
       - name: Build unsigned app
         run: |
-          cd GongmaoAssistant-v0.8.0
+          cd GongmaoAssistant-v0.8.7
           xcodebuild \
             -project CampusOne.xcodeproj \
             -scheme CampusOne \
@@ -61,6 +61,6 @@ jobs:
       - name: Publish release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v0.8.0
-          name: GongmaoAssistant v0.8.0 (unsigned)
+          tag_name: v0.8.7
+          name: GongmaoAssistant v0.8.7 (unsigned)
           files: GongmaoAssistant-unsigned.ipa
