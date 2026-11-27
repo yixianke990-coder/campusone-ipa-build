@@ -29,7 +29,7 @@ jobs:
       - name: Build unsigned app
         run: |
           set -o pipefail
-          cd GongmaoAssistant-v0.8.9
+          cd GongmaoAssistant-v0.9.0
           xcodebuild \
             -project CampusOne.xcodeproj \
             -scheme CampusOne \
@@ -70,6 +70,6 @@ jobs:
       - name: Publish release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v0.8.9
-          name: GongmaoAssistant v0.8.9 (unsigned)
+          tag_name: v0.9.0
+          name: GongmaoAssistant v0.9.0 merged (unsigned)
           files: GongmaoAssistant-unsigned.ipa
